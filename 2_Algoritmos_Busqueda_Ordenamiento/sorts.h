@@ -22,8 +22,8 @@ class Sorts{
     void ordenaSeleccion(vector<T>&);
     void ordenaBurbuja(vector<T>&);
     void ordenaMerge(vector<T>&);
-    T busqSecuencial(vector<T>&, T);
-    T busqBinaria(vector<T>&, T);
+    T busqSecuencial(vector<T>&, const int);
+    T busqBinaria(vector<T>&, const int);
 
 };
 
@@ -60,20 +60,89 @@ void Sorts<T>::ordenaBurbuja(vector<T>&prueba){
 }
 
 template <class T>
+void Sorts<T>::copyArray(std::vector<T> &A, std::vector<T> &B, int low, int high) {
+	for (int i = low; i <= high; i++) {
+		A[i] = B[i];
+	}
+}
+
+template <class T>
+void Sorts<T>::mergeArray(vector<T>&A, vector<T>&B, int low, int mid, int high){
+    int i, j, k;
+
+    i = low;
+    j = mid + 1;
+    k = low;
+
+    while(i <= mid && j <= high){
+        if(A[i] < A[j]){
+            B[k] = A[i];
+            i++;
+        } else{
+            B[k] = A[j];
+            j++;
+        }
+        k++;
+    }
+    if(i > mid){
+        for(;j <= high; j++){
+            B[k++] = A[j];
+        } 
+    } else{
+            for(; i <= mid; i++){
+                B[k++] = A[i];
+            }
+        }
+    }
+
+template <class T>
+void Sorts<T>::mergeSplit(vector<T>&A, vector<T>&B, int low, int high){
+    int mid;
+
+    if((high - low) < 1 ){
+        return;
+    }
+    mid = (high + low) / 2;
+    mergeSplit(A, B, low, mid);
+    mergeSplit(A, B, mid + 1, high);
+    mergeArray(A, B, low, mid, high);
+    copyArray(A, B, low, high);
+}
+
+template <class T>
 void Sorts<T>::ordenaMerge(vector<T>&prueba){
+    vector<T> tmp(prueba.size());
     
+    mergeSplit(prueba, tmp, 0, prueba.size() - 1);
 }
 
 template <class T>
-T Sorts<T>::busqSecuencial(vector<T>&prueba, T){
-    
-    return T();
+T Sorts<T>::busqSecuencial(vector<T>&prueba, const int target){
+    for(int i = 0; i <= prueba.size() - 1; i++){
+        if(prueba[i] == target){
+            return i;
+        }
+    }
+    return -1;
 }
 
 template <class T>
-T Sorts<T>::busqBinaria(vector<T>&prueba, T){
-    
-    return T();
+T Sorts<T>::busqBinaria(vector<T>&prueba, const int target){
+    int low = 0;
+    int high = prueba.size() - 1;
+    int mid;
+
+    while(low <= high){
+        mid = (low + high) / 2;
+        if(prueba[mid] == target){
+            return mid;
+        } else if(prueba[mid] < target){
+            low = mid + 1;
+        } else{
+            high = mid - 1;
+        }
+    }
+    return -1;
 }
 
 
