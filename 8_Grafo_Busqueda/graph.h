@@ -36,16 +36,43 @@ private:
 		//vector<Type> *vect = new vector<Type>
 
 public:
-		void loadGraphMat(string, int, int);
 		Graph(int);
 		Graph();
+		
+		void loadGraphMat(string, int, int);
+		void loadGraphList(string, int, int);
+		
 		void addEdgeAdjMatrix(int, int);
+		void addEdgeAdjList(int, int);
+		
 		string printAdjMat();
 		string printAdjMat_clean();
+		string printAdjList();
+		
 		bool contains(list<int>, int);
 		void sortAdjList();
+
+		string DFS(int, int);
+		string depthHelper(int, int, stack<int>&, list<int>&, vector<vector<int>>&);
+		string BFS(int, int);
+		string breadthHelper(int, int, queue<int>&, list<int>&, vector<vector<int>>&);
+		
+		string print_visited(list<int>);
+		string print_path(vector<vector<int>>&, int, int);
 };
 
+Graph::Graph() {
+	edgesList = edgesMat = 0;
+}
+
+Graph::Graph(int n) {
+	nodes = n;
+	adjList = new vector<int>[nodes];
+	adjMatrix = new int [nodes*nodes];
+	for (int i = 0; i < nodes*nodes; i++)
+		adjMatrix[i] = 0;
+	edgesList = edgesMat = 0;
+}
 
 void Graph::loadGraphMat(string name, int a, int b){
 	adjMatrix = new int [a*b];
@@ -67,24 +94,56 @@ void Graph::loadGraphMat(string name, int a, int b){
 		}
 }
 
-Graph::Graph() {
-	edgesList = edgesMat = 0;
+void Graph::loadGraphList(string name, int a, int b){
+	adjList = new vector<int>[a];
+	nodes = a;
+	string line;
+	ifstream lee (name);
+	int u, v;
+	if (lee.is_open()){
+		while (getline(lee, line)){
+			u = stoi(line.substr(1,1));
+			v = stoi(line.substr(4,1));
+			addEdgeAdjList(u,v);
+		}
+		lee.close(); // Closes the file
+	} else {
+		cout << "Unable to open file";
+	}
+	sortAdjList();
 }
 
-Graph::Graph(int n) {
-	nodes = n;
-	adjList = new vector<int>[nodes];
-	adjMatrix = new int [nodes*nodes];
-	for (int i = 0; i < nodes*nodes; i++)
-		adjMatrix[i] = 0;
-	edgesList = edgesMat = 0;
-}
+
+
+
 
 void Graph::addEdgeAdjMatrix(int u, int v){
 	adjMatrix[u*nodes+v] = 1;
 	adjMatrix[v*nodes+u] = 1;
 	edgesMat++;
 }
+
+void Graph::addEdgeAdjList(int u, int v){
+	adjList[u].push_back(v);
+	adjList[v].push_back(u);
+	edgesList++;
+}
+
+bool Graph::contains(list<int> ls, int node){
+		list<int>::iterator it;
+		it = find(ls.begin(), ls.end(), node);
+		if(it != ls.end())
+			return true;
+		else
+			return false;
+}
+
+void Graph::sortAdjList(){
+	for (int i = 0; i < nodes; i++){
+		sort(adjList[i].begin(), adjList[i].end());
+	}
+}
+
 
 string Graph::printAdjList(){
 	  stringstream aux;
@@ -118,7 +177,7 @@ string Graph::printAdjMat_clean(){
 	}
 	aux << "\n";
 	for (int i = 0; i < nodes; i++){
-			aux << "__________";
+			aux << "____";
 	}
 	aux << "\n";
 	for (int i = 0; i < nodes; i++){
@@ -129,6 +188,101 @@ string Graph::printAdjMat_clean(){
 	   aux << "\n";
   }
 	return aux.str();
+}
+
+string Graph::print_visited(list<int> q){
+	stringstream aux;
+	aux << "visited: ";
+	while (!q.empty()){
+		aux << q.front() << " ";
+		q.pop_front();
+    }
+	return aux.str();
+}
+
+string Graph::print_path(vector<vector <int>> &path, int start, int goal){
+	int node =  path[goal][0];
+	stack<int> reverse;
+	reverse.push(goal);
+	stringstream aux;
+	aux  << "path:";
+	while (node != start) {
+		reverse.push(node);
+    	node = path[node][0];
+    }
+	reverse.push(start);
+	while (!reverse.empty()) {
+		aux << " " << reverse.top() ;
+		reverse.pop();
+    }
+	return aux.str();
+}
+
+string Graph::DFS(int start, int goal){
+	stack <int> st;
+	list<int> visited;
+	vector<vector<int>> paths(nodes, vector<int>(1, -1));
+	st.push(start);
+	string ans = depthHelper(start, goal, st, visited, paths);
+	ans = ans + print_path(paths, start, goal);
+	return ans;
+}
+
+string Graph::depthHelper(int current, 
+						  int goal, 
+						  stack<int>& st, 
+						  list<int>& visited, 
+						  vector<vector<int>>& paths){
+	if(current == goal){
+		return print_visited(visited);
+	} else if(st.empty()){
+		return " node not found";
+	} else {
+		current = st.top();
+		st.pop();
+		visited.push_back(current);
+		for (int i = 0; i < adjList[current].size(); i++)
+			if (!contains(visited, adjList[current][i])){
+				st.push(adjList[current][i]);
+				paths[adjList[current][i]][0] = current;
+			}
+		return depthHelper(current, goal, st, visited, paths);
+	}
+}
+
+string Graph::BFS(int start, int goal) {
+	queue<int> qu;
+	list<int> visited;
+	vector<vector<int>> paths(nodes, vector<int>(1,0));
+	qu.push(start);
+	visited.push_back(start);
+	string ans = breadthHelper(start, goal, qu, visited, paths);
+	ans += print_path(paths, start, goal);
+	return ans;
+}
+
+string Graph::breadthHelper(int current,
+							int goal,
+							queue<int> &qu,
+							list<int> &visited,
+							vector<vector<int>> &paths) {
+	if (current == goal) {
+		return print_visited(visited);
+	} else if (!qu.empty()) {
+		current = qu.front();
+		qu.pop();
+		for (int i = 0; i < adjList[current].size(); i++) {
+			if (!contains(visited, adjList[current][i])) {
+				qu.push(adjList[current][i]);
+				visited.push_back(adjList[current][i]);
+				paths[adjList[current][i]][0] = current;
+				if (adjList[current][i] == goal) return print_visited(visited);
+			}
+		}
+		return breadthHelper(current, goal, qu, visited, paths);
+	}
+
+	return " node not found";
 }
 
 #endif /* Graph_H_ */
