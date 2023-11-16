@@ -8,6 +8,7 @@
 #ifndef BST_H_
 #define BST_H_
 
+#include <queue>
 #include <string>
 #include <sstream>
 #include <iostream>
@@ -256,10 +257,11 @@ template <class T>
 void Node<T>::postorder(std::stringstream &aux) const {
 	if (left != 0) {
 		left->postorder(aux);
-		aux << " ";
 	}
 	if (right != 0) {
 		right->postorder(aux);
+	}
+	if (aux.tellp() != 1) {
 		aux << " ";
 	}
 	aux << value;
@@ -267,14 +269,21 @@ void Node<T>::postorder(std::stringstream &aux) const {
 
 template <class T>
 void Node<T>::levelorder(std::stringstream &aux) const {
-	aux << value;
-	if (left != 0) {
-		aux << " ";
-		left -> levelorder(aux);
-	}
-	if (right != 0) {
-		aux << " ";
-		right -> levelorder(aux);
+	queue<Node<T>*> q;
+	q.push(const_cast<Node<T>*>(this));
+	while (!q.empty()) {
+		Node<T>* current = q.front();
+		q.pop();
+		if (current->left != 0) {
+			q.push(current->left);
+		}
+		if (current->right != 0) {
+			q.push(current->right);
+		}
+		if (aux.tellp() != 1) {
+			aux << " ";
+		}
+		aux << current->value;
 	}
 }
 
