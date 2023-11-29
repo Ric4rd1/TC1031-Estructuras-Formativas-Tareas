@@ -7,6 +7,8 @@
 *
 *
 *  Extiende este archivo para completar tu soución.
+*
+*	Ricard
 */
 
 #ifndef Graph_H_
@@ -40,7 +42,7 @@ public:
 		Graph();
 		
 		void loadGraphMat(string, int, int);
-		void loadGraphList(string, int, int);
+		void loadGraphList(string, int);
 		
 		void addEdgeAdjMatrix(int, int);
 		void addEdgeAdjList(int, int);
@@ -74,6 +76,34 @@ Graph::Graph(int n) {
 	edgesList = edgesMat = 0;
 }
 
+
+void Graph::loadGraphMat(string data, int a, int b){
+	adjMatrix = new int [a*b];
+	nodes = a;
+	for (int i = 0; i < a*b; i++)
+		adjMatrix[i] = 0;
+	int u, v, i = 0;
+	while (i < data.size()) {
+		u = (int)data[i+1] - 48;
+		v = (int)data[i+3] - 48;
+		i = i + 6;
+		addEdgeAdjMatrix(u,v);
+	}
+}
+
+void Graph::loadGraphList(string data, int a){
+	adjList = new vector<int>[a];
+	nodes = a;
+	int u, v, i = 0;
+	while ( i < data.size()) {
+			u = (int)data[i+1] - 48;
+			v = (int)data[i+3] - 48;
+			i = i + 6;
+			addEdgeAdjList(u,v);
+	}
+	sortAdjList();
+}
+/*
 void Graph::loadGraphMat(string name, int a, int b){
 	adjMatrix = new int [a*b];
 	nodes = a;
@@ -94,6 +124,7 @@ void Graph::loadGraphMat(string name, int a, int b){
 		}
 }
 
+
 void Graph::loadGraphList(string name, int a, int b){
 	adjList = new vector<int>[a];
 	nodes = a;
@@ -112,6 +143,7 @@ void Graph::loadGraphList(string name, int a, int b){
 	}
 	sortAdjList();
 }
+*/
 
 
 
